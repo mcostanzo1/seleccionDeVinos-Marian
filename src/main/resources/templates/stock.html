@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Products</title>
+    <meta charset="utf-8" />
+    <meta name="c-token" content="{!! csrf_token() !!}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/css/bootstrap.min.css" integrity="sha384-Zug+QiDoJOrZ5t4lssLdxGhVrurbmBWopoEl+M6BdEfwnCJZtKxi1KgxUyJq13dy" crossorigin="anonymous"/>
+</head>
+<body>
+        <!--Nav-->
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Inicio</a>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link active dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Productos</a>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="#">Todos</a>
+                    <a class="dropdown-item" href="#">Vinos</a>
+                    <a class="dropdown-item" href="#">Cervezas</a>
+                    <a class="dropdown-item" href="#">Whiskies</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#">Añadir producto...</a>
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Pedidos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Clientes</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#">Listas de precios</a>
+            </li>
+        </ul>
+
+
+        <div class="container">
+            <h1>Stock</h1>
+            <!-- Trigger the modal with a button -->
+
+            <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#newCellar">Nueva Bodega</button>
+            <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#newWine">Nuevo Vino</button>
+            <button type="button" class="btn btn-info btn-lg" data-toggle="modal" data-target="#newStock">Agregar Stock</button>
+
+
+            <!-- Stock Table -->
+            <table class="table">
+                <thead class="thead-dark">
+                <tr>
+                    <th scope="col">Codigo de Stock</th>
+                    <th scope="col">Producto</th>
+                    <th scope="col">Cantidad de cajas</th>
+                    <th scope="col">Precio unitario en ARS</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="stock : ${stockList}">
+                        <td th:text="${stock.stockCode}"></td>
+                        <td th:text="${stock.productName}"></td>
+                        <td th:text="${stock.quantityOnStockBox}"></td>
+                        <td th:text="${stock.price}"></td>
+                </tbody>
+            </table>
+
+            <!-- Stock Modal -->
+            <div id="newStock" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Nuevo Stock</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form  id="stockForm" action="http://localhost:8080/stock/createStock" method="post" name="stockForm">
+                                <div class="form-group">
+                                    <input type="hidden" id="productName" name="productName" value=""/>
+                                    <label for="sel2">Producto</label>
+                                        <select class="form-control" id="sel2" onchange="changeHiddenInput2(this)">
+                                            <option th:each="wine : ${wines}"
+                                                    th:value="${wine.wineName}"
+                                                    th:text="${wine.wineName}">
+                                            </option>
+                                        </select><br />
+                                    <script type='text/javascript'>
+                                        $(function changeHiddenInput2(objDropDown) {
+                                            var vinoElement= document.getElementById("sel2");
+                                            var vino = vinoElement.options[vinoElement.selectedIndex].text;
+                                            var objHidden = document.getElementById("productName");
+                                            objHidden.value = vino;
+                                        });
+                                    </script>
+                                    <label for="quantityOnStockBox">Cantidad de cajas</label>
+                                    <input type="text" class="form-control" id="quantityOnStockBox" placeholder="1,2,3...90..." name="quantityOnStockBox"/><br />
+                                    <label for="price">Precio unitario</label>
+                                    <input type="text" class="form-control" placeholder="1,2,45,45.45...." id="price" name="price"/><br />
+                                    <button type="submit" id="stockSubmit"  class="btn btn-primary" >Guardar</button>
+                                </div>
+                            </form>
+                            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+                            <script>
+                                $(document).ready(function(){
+
+                                    var vinoElement= document.getElementById("sel2");
+                                    var vino = vinoElement.options[vinoElement.selectedIndex].text;
+                                    var cantidadCajas = document.getElementById("quantityOnStockBox");
+                                    var precio = document.getElementById("price");
+
+                                    // click on button submit
+                                    $('#stockForm').on('submit', function(event){
+                                        var obj1 = {
+                                            productName: "${vino}",
+                                            quantityOnStockBox: "${cantidadCajas}",
+                                            price: "${precio}"
+                                        };
+                                        console.log(obj1);
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: 'http://localhost:8080/stock/createStock',
+                                            dataType: 'json',
+                                            data: JSON.stringify(obj1),
+                                            contentType : 'application/json',
+                                            success: function(data) {
+                                                alert(data)
+                                            }
+                                        });
+
+                                        return false;
+                                    });
+                                });
+
+                            </script>
+                        </div>
+                        <div class="modal-footer">
+                            <button  type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Cellar Modal -->
+            <div id="newCellar" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Nueva Bodega</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form  id="cellarForm" action="http://localhost:8080/cellars/createCellar" method="post" name="cellarForm">
+                                <div class="form-group">
+                                    <label for="cellarName">Nombre</label>
+                                    <input type="text" class="form-control" id="cellarName" name="cellarName" placeholder="Ingrese el nombre de la bodega"><br />
+                                    <label for="location">Ubicación</label>
+                                    <input type="text" class="form-control" id="location" placeholder="Mendoza,Santiago..." name="location"/><br />
+                                    <label for="description">Descripción</label>
+                                    <textarea class="form-control" rows="5" placeholder="breve descripción" id="description" name="description"></textarea><br />
+                                    <button type="submit"id="submitCellar" class="btn btn-primary" >Guardar</button>
+                                </div>
+                            </form>
+                            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+                            <script>
+                                $(document).ready(function(){
+                                    // click on button submit
+                                    $('#cellarForm').on('submit', function(event){
+
+                                        var obj = $('cellarForm').serializeJSON();
+
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: 'http://localhost:8080/cellars/createCellar',
+                                            dataType: 'json',
+                                            data: JSON.stringify(obj),
+                                            contentType : 'application/json',
+                                            success: function(data) {
+                                                alert(data)
+                                            }
+                                        });
+
+                                        return false;
+                                    });
+                                });
+
+                            </script>
+                        </div>
+                        <div class="modal-footer">
+                            <button  type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Wine Modal -->
+            <div id="newWine" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+
+                    <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Nuevo Vino</h4>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <form  id="wineForm" action="http://localhost:8080/wines/createWine" method="post" name="wineForm">
+                                <div class="form-group">
+                                    <label for="wineName">Nombre</label>
+                                    <input type="text" class="form-control" id="wineName" name="wineName" placeholder="Ingrese el nombre del vino"><br />
+                                    <label for="quantityOnBox">Cantidad en caja</label>
+                                    <input type="text" class="form-control" id="quantityOnBox" placeholder="1,2,3...90..." name="quantityOnBox"/><br />
+                                    <input type="hidden" id="cellar" name="cellar" value=""/>
+                                    <label for="sel1">Bodega</label>
+                                        <select class="form-control" id="sel1" onchange="changeHiddenInput(this)">
+                                            <option th:each="cellar : ${cellars}"
+                                                    th:value="${cellar.cellarName}"
+                                                    th:text="${cellar.cellarName}">
+                                            </option>
+                                        </select><br />
+                                    <script type='text/javascript'>
+                                        $(function changeHiddenInput(objDropDown) {
+                                            var bodegaElement= document.getElementById("sel1");
+                                            var bodega = bodegaElement.options[bodegaElement.selectedIndex].text;
+                                            var objHidden = document.getElementById("cellar");
+                                            objHidden.value = bodega;
+                                        });
+                                    </script>
+                                    <label for="wineClasify">Clasificación</label>
+                                    <input type="text" class="form-control" placeholder="malbec,chardonnay..." id="wineClasify" name="clasify"/><br />
+                                    <button type="submit" id="wineSubmit"  class="btn btn-primary" >Guardar</button>
+                                </div>
+                            </form>
+                            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+                            <script>
+                                $(document).ready(function(){
+
+                                    var vinoNombre = document.getElementById("wineName");
+                                    var vinoCantidad = document.getElementById("quantityOnBox");
+                                    var vinoClasify = document.getElementById("wineClasify");
+                                    // click on button submit
+                                    $('#wineForm').on('submit', function(event){
+                                        var obj = {
+                                            wineName: "${vinoNombre}",
+                                            quantityOnBox: "${vinoCantidad}",
+                                            clasify: "${vinoClasify}",
+                                            cellarName: "${bodega}"
+                                        };
+                                            console.log(obj);
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: 'http://localhost:8080/wines/createWine',
+                                            dataType: 'json',
+                                            data: JSON.stringify(obj),
+                                            contentType : 'application/json',
+                                            success: function(data) {
+                                                alert(data)
+                                            }
+
+                                        });
+                                        return false;
+                                    });
+                                });
+
+                            </script>
+                        </div>
+                        <div class="modal-footer">
+                            <button  type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.3/js/bootstrap.min.js" integrity="sha384-a5N7Y/aK3qNeh15eJKGWxsqtnX/wWdSZSKp+81YjTmS15nvnvxKHuzaWwXHDli+4" crossorigin="anonymous"></script>
+</body>
+</html>
